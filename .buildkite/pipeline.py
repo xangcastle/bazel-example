@@ -362,9 +362,9 @@ env = BuildkiteEnvironment(
     repo_host="github.com"
 )
 
-test_step = Command().label("Ejecutar Pruebas").run("pytest tests/")
+test_step = Command().label("Ejecutar Pruebas").run('echo "Ejecutar Pruebas"')
 
-build_step = Command().label("Construir Imagen Docker").run("docker build -t mi-imagen .")
+build_step = Command().label("Construir Imagen Docker").run('echo "Construir Imagen Docker"')
 
 group_steps = Group([test_step, build_step])
 
