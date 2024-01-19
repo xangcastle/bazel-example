@@ -303,7 +303,8 @@ class Pipeline(object):
             trigger = Trigger.DIFF
 
         changed_paths = [
-            p.decode() for p in subprocess.check_output(["git", "diff", f'origin/{self.merge_base}', "--name-only"]).splitlines()
+            p.decode() for p in
+            subprocess.check_output(["git", "diff", f'origin/{self.merge_base}', "--name-only"]).splitlines()
         ]
 
         return {
@@ -362,9 +363,13 @@ env = BuildkiteEnvironment(
     repo_host="github.com"
 )
 
-test_step = Command().label("Ejecutar Pruebas").run('echo "Ejecutar Pruebas"')
+test_step = Command().label("Ejecutar Pruebas").run(
+    'buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel1|#channel1>"',
+    'echo "Ejecutar Pruebas"')
 
-build_step = Command().label("Construir Imagen Docker").run('echo "Construir Imagen Docker"')
+build_step = Command().label("Construir Imagen Docker").run(
+    'buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel1|#channel1>"',
+    'echo "Construir Imagen Docker"')
 
 group_steps = Group([test_step, build_step])
 
