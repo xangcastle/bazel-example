@@ -9,7 +9,7 @@ https://buildkite.com/docs/pipelines
 
 The full pipeline config schema is also useful:
 
-https://github.com/buildkite/pipeline-schema/blob/master/schema.json
+https://github.com/buildkite/pipeline-schema/blob/main/schema.json
 """
 from __future__ import annotations
 from typing import TYPE_CHECKING
@@ -359,7 +359,7 @@ env = BuildkiteEnvironment(
     commit="123abc",
     trigger=Trigger.MASTER,
     changed_paths=["src/main.py", "tests/test_main.py"],
-    merge_base="master",
+    merge_base="main",
     repo_host="github.com"
 )
 
@@ -377,8 +377,8 @@ conditional_step = ConditionalGroup(
 
 pipeline = Pipeline(
     graph=lambda env: conditional_step,
-    branch="master",
-    merge_base="master",
+    branch="main",
+    merge_base="main",
     source="push",
     commit="123abc",
     repo_host="github.com"
