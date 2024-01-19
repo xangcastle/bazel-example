@@ -369,7 +369,7 @@ test_step = Command().label("Ejecutar Pruebas").run(
 
 build_step = Command().label("Construir Imagen Docker").run(
     'buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel1|#channel1>"',
-    'echo "Construir Imagen Docker"')
+    'bazel build //...')
 
 group_steps = Group([test_step, build_step])
 
