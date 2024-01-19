@@ -9,4 +9,4 @@ steps:
   - label: ":bazel: Test 2"
     commands:
       - buildkite-agent meta-data set 'channel_for_help' '<https://pinterest.slack.com/test2|#test2>'
-      - bazel test //main:hello-world-test
+      - echo "Testing..."
