@@ -295,7 +295,7 @@ class Pipeline(object):
         self.repo_host = repo_host
 
     def env(self) -> BuildkiteEnvironment:
-        if self.branch == "refs/heads/master" or self.branch == "master":
+        if self.branch == "refs/heads/main" or self.branch == "main":
             trigger = Trigger.MASTER
         elif self.source == "schedule":
             trigger = Trigger.SCHEDULE
