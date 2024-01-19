@@ -1,4 +1,9 @@
 steps:
-  - label: ":bazel: Build"
+  - key: "bazel"
+    label: ":bazel: Test"
+    commands:
+      - bazel test //main:hello-world-test
+  - key: "bazel build"
+    label: ":bazel: Build"
     commands:
       - bazel build //main:hello-world
