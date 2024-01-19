@@ -2,7 +2,10 @@ steps:
   - label: ":bazel: Build"
     commands:
       - echo "Building..."
-  - label: ":bazel: Test"
+  - label: ":bazel: Test 1"
     commands:
-      - buildkite-agent meta-data set 'channel_for_help' '<https://pinterest.slack.com/somechannel_id|#channel_name>'
+      - echo "Test 1..."
+  - label: ":bazel: Test 2"
+    commands:
+      - buildkite-agent meta-data set 'channel_for_help' '<https://pinterest.slack.com/test1|#test1>'
       - bazel test //main:hello-world-test
