@@ -253,35 +253,6 @@ class Command(Step):
         return [{**self._step, "key": key, "depends_on": list(set(self.deps))} for key in self.keys]
 
 
-class Group(Step):
-    """
-    A group step waits for all steps to have successfully completed before allowing dependent steps to continue. It's based on the Buildkite wait step but designed to be more explict.
-
-    Read more about wait steps: https://buildkite.com/docs/pipelines/wait-step
-    """
-
-    def __init__(self, steps: Iterable[Step]):
-        super().__init__()
-        self._steps: Iterable[Step] = steps
-
-    @property
-    def keys(self) -> List[str]:
-        return list(_flatten(step.keys for step in self._steps))
-
-    def prefix_label(self, prefix: str):
-        for step in self._steps:
-            step.prefix_label(prefix)
-        return self
-
-    def depends_on(self, dep):
-        for step in self._steps:
-            step.depends_on(dep)
-        return self
-
-    def build(self) -> List[Dict[str, Any]]:
-        return list(_flatten(step.build() for step in self._steps))
-
-
 class Pipeline(object):
     """
     A model of a Buildkite Pipeline that supports exporting itself to YAML and
@@ -327,53 +298,3 @@ class Pipeline(object):
             steps[step["key"]] = step
         return dump({"steps": list(steps.values())}, default_flow_style=False)
 
-
-class ConditionalGroup(Group):
-    """Execute a group conditionally based on what paths have changed"""
-
-    PIPELINE_PATH_PATTERNS = (re.compile(r'^\.buildkite'),)
-
-    def __init__(self, env: BuildkiteEnvironment, path_patterns: Iterable[Pattern], steps: Iterable[Step]):
-        """
-        Create a conditional group step
-
-        :param env: Provide the Buildkite environment values
-        :param path_patterns: A list of regex patterns.
-            At least one of the changed paths must match at least one of these patterns for the group to be executed.
-        :param steps: The list of steps that should be executed if the paths match
-        """
-        super().__init__(steps)
-        self.path_patterns = self.PIPELINE_PATH_PATTERNS + tuple(path_patterns)
-        self.changed_paths = env.get("changed_paths", [])
-        self._add_step_path_patterns(self._steps)
-        self.should_run = self.paths_matches(self.changed_paths, self.path_patterns)
-
-    @staticmethod
-    def paths_matches(paths: Iterable[str], patterns: Iterable[Pattern]) -> bool:
-        return any(any(pattern.search(path) for path in paths) for pattern in patterns)
-
-    def _add_step_path_patterns(self, steps: Iterable[Step]):
-        """
-        Add path patterns that would affect the operation of a set of steps
-        For example, a docker-compose step is necessarily affected if its associated docker-compose file changes,
-            and so we need to run that step every time it does.
-        """
-        from contrib import DockerComposePlugin
-
-        for step in steps:
-            if isinstance(step, Group):
-                self._add_step_path_patterns(step._steps)
-            elif isinstance(step, Command):
-                for plugin in step._step.get('plugins', []):
-                    if DockerComposePlugin.name in plugin:
-                        config = plugin.get('docker-compose', {}).get('config')
-                        if config is not None:
-                            self.path_patterns += re.compile(config)
-
-    @property
-    def keys(self) -> List[str]:
-        # Nothing should depend on this step if it won't be running
-        return super().keys if self.should_run else []
-
-    def build(self) -> List[Dict[str, Any]]:
-        return super().build() if self.should_run else []
