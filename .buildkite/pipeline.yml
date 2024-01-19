@@ -4,6 +4,7 @@ steps:
       - echo "Building..."
   - label: ":bazel: Test 1"
     commands:
+      - buildkite-agent meta-data set 'channel_for_help' '<https://pinterest.slack.com/test1|#test2>'
       - echo "Test 1..."
   - label: ":bazel: Test 2"
     commands:
