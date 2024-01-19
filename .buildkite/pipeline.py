@@ -303,7 +303,7 @@ class Pipeline(object):
             trigger = Trigger.DIFF
 
         changed_paths = [
-            p.decode() for p in subprocess.check_output(["git", "diff", self.merge_base, "--name-only"]).splitlines()
+            p.decode() for p in subprocess.check_output(["git", "diff", f'origin/{self.merge_base}', "--name-only"]).splitlines()
         ]
 
         return {
@@ -316,7 +316,6 @@ class Pipeline(object):
 
     def to_yaml(self):
         g = self.graph(self.env())
-        # Dedupes the final steps based on their key property
         steps = {}
         for step in g.build():
             steps[step["key"]] = step
@@ -358,7 +357,7 @@ class ConditionalGroup(Group):
 env = BuildkiteEnvironment(
     commit="123abc",
     trigger=Trigger.MASTER,
-    changed_paths=["src/main.py", "tests/test_main.py"],
+    changed_paths=["main/hello-world.cc"],
     merge_base="main",
     repo_host="github.com"
 )
@@ -376,7 +375,7 @@ conditional_step = ConditionalGroup(
 )
 
 pipeline = Pipeline(
-    graph=lambda env: conditional_step,
+    graph=lambda env: group_steps,
     branch="main",
     merge_base="main",
     source="push",
