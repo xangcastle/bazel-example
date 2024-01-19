@@ -355,33 +355,17 @@ class ConditionalGroup(Group):
         return super().build() if self.should_run else []
 
 
-env = BuildkiteEnvironment(
-    commit="123abc",
-    trigger=Trigger.MASTER,
-    changed_paths=["src/main.py", "tests/test_main.py"],
-    merge_base="master",
-    repo_host="github.com"
-)
+def pipeline(env):
+    changed_paths = env.get("changed_paths", [])
+    print("changed_paths", changed_paths)
+    _pipeline = [
+        Command(
+            key=":buildkite: Trigger Pinboard Build",
+        ).label("Trigger Pinboard Build")
+        .run('echo "triggering pinboard build"')
+    ]
 
-test_step = Command().label("Ejecutar Pruebas").run("pytest tests/")
+    return Group(_pipeline)
 
-build_step = Command().label("Construir Imagen Docker").run("docker build -t mi-imagen .")
 
-group_steps = Group([test_step, build_step])
-
-conditional_step = ConditionalGroup(
-    env=env,
-    path_patterns=[re.compile(r'^src/'), re.compile(r'^tests/')],
-    steps=[group_steps]
-)
-
-pipeline = Pipeline(
-    graph=lambda env: conditional_step,
-    branch="master",
-    merge_base="master",
-    source="push",
-    commit="123abc",
-    repo_host="github.com"
-)
-
-print(pipeline.to_yaml())
+print(pipeline({"changed_paths": ["foo", "bar"]}).to_yaml())
