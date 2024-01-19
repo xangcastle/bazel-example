@@ -366,3 +366,6 @@ def pipeline(env):
     ]
 
     return Group(_pipeline)
+
+
+print(pipeline({"changed_paths": ["foo", "bar"]}).to_yaml())
