@@ -206,6 +206,15 @@ class Command(Step):
         self._step["commands"] = list(argc)
         return self
 
+    def script(self, *argc):
+        # Cast to a list here because otherwise tuples are formatted by pyyaml as
+        #
+        #   commands: !!python/tuple
+        #   - make
+        #
+        self._step["script"] = list(argc)
+        return self
+
     def plugin(self, plugin, options):
         assert isinstance(plugin, Plugin)
         name = "#".join(plugin)
@@ -363,13 +372,13 @@ env = BuildkiteEnvironment(
     repo_host="github.com"
 )
 
-test_step = Command().label("Ejecutar Pruebas").run(
-    'buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel1|#channel1>"',
-    'echo "Ejecutar Pruebas"')
+test_step = (Command().label("Ejecutar Pruebas")
+             .script('buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel1|#channel1>"')
+             .run('echo "Ejecutar Pruebas"'))
 
-build_step = Command().label("Construir Imagen Docker").run(
-    'buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel2|#channel2>"',
-    'bazel build //...')
+build_step = (Command().label("Construir Imagen Docker")
+              .script('buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel2|#channel2>"')
+              .run('bazel build //...'))
 
 group_steps = Group([test_step, build_step])
 
