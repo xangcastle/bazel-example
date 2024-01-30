@@ -157,6 +157,7 @@ class Command(Step):
     def __init__(self, key=None):
         super().__init__(key)
         self._prefix = None
+        self._meta = {}
         self._step = {
             "timeout_in_minutes": 20,
             "artifact_paths": ["artifacts/*"],
@@ -197,22 +198,20 @@ class Command(Step):
         self._step["retry"] = {**self._step["retry"], **retry}
         return self
 
+    def set_meta(self, key, value):
+        self._meta[key] = value
+        return self
+
+    def build_meta(self):
+        return [f'buildkite-agent meta-data set "{key}" "{value}"' for key, value in self._meta.items()]
+
     def run(self, *argc):
         # Cast to a list here because otherwise tuples are formatted by pyyaml as
         #
         #   commands: !!python/tuple
         #   - make
         #
-        self._step["commands"] = list(argc)
-        return self
-
-    def script(self, *argc):
-        # Cast to a list here because otherwise tuples are formatted by pyyaml as
-        #
-        #   commands: !!python/tuple
-        #   - make
-        #
-        self._step["script"] = list(argc)
+        self._step["commands"] = self.build_meta() + list(argc)
         return self
 
     def plugin(self, plugin, options):
@@ -372,12 +371,14 @@ env = BuildkiteEnvironment(
     repo_host="github.com"
 )
 
-test_step = (Command().label("Ejecutar Pruebas")
-             .script('buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel1|#channel1>"')
+test_step = (Command()
+             .label("Ejecutar Pruebas")
+             .set_meta("slack_channel", "#pruebas")
              .run('echo "Ejecutar Pruebas"'))
 
-build_step = (Command().label("Construir Imagen Docker")
-              .script('buildkite-agent meta-data set "channel_for_help" "<https://pinterest.slack.com/channel2|#channel2>"')
+build_step = (Command()
+              .label("Construir Imagen Docker")
+              .set_meta("slack_channel", "#pruebas2")
               .run('bazel build //...'))
 
 group_steps = Group([test_step, build_step])
