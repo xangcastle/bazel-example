@@ -28,6 +28,7 @@ from collections import namedtuple
 from enum import Enum
 from yaml import dump
 
+# region: Buildkite SDK
 if TYPE_CHECKING:
     from re import Pattern
 
@@ -363,6 +364,24 @@ class ConditionalGroup(Group):
         return super().build() if self.should_run else []
 
 
+# endregion
+
+
+DockerPlugin = Plugin(name="docker", version="v3.0.1")
+
+
+class DockerContainer(Container):
+    def __init__(self, image, envs=None, options=None):
+        self.image = image
+        self.envs = envs or {}
+        self.options = options or {}
+
+    def run_in_container(self, command, docker_compose_envs=None, docker_compose_options=None):
+        envs = {**self.envs, **(docker_compose_envs or {})}
+        options = {**self.options, **(docker_compose_options or {})}
+        return command.plugin(DockerPlugin, {"image": self.image, "env": envs, "options": options})
+
+
 env = BuildkiteEnvironment(
     commit="123abc",
     trigger=Trigger.MASTER,
@@ -370,6 +389,8 @@ env = BuildkiteEnvironment(
     merge_base="main",
     repo_host="github.com"
 )
+
+bazel_container = DockerContainer('gcr.io/cloud-marketplace/google/bazel:3.7.2')
 
 test_step = (Command()
              .label("Ejecutar Pruebas")
@@ -379,7 +400,8 @@ test_step = (Command()
 build_step = (Command()
               .label("Construir Imagen Docker")
               .set_meta("slack_channel", "#pruebas2")
-              .run('bazel build //...'))
+              .run('bazel build //...')
+              .container(bazel_container))
 
 group_steps = Group([test_step, build_step])
 
