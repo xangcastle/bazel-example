@@ -393,18 +393,18 @@ env = BuildkiteEnvironment(
 bazel_container = DockerContainer('gcr.io/cloud-marketplace/google/bazel:3.7.2')
 node_container = DockerContainer('node:14.17.0')
 
+build_step = (Command()
+              .label("Construir Imagen Docker")
+              .set_meta("slack_channel_for_help", "#pruebas2")
+              .run('echo "Construir Imagen Docker"')
+              .container(node_container))
+
 test_step = (Command()
              .label("Ejecutar Pruebas")
              .set_meta("slack_channel_for_help", "#pruebas")
              .run('echo "Ejecutar Pruebas"'))
 
-build_step = (Command()
-              .label("Construir Imagen Docker")
-              .set_meta("slack_channel_for_help", "#pruebas2")
-              .run('bazel build //...')
-              .container(node_container))
-
-group_steps = Group([test_step, build_step])
+group_steps = Group([build_step, test_step])
 
 conditional_step = ConditionalGroup(
     env=env,
