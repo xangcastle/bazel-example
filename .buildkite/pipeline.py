@@ -395,12 +395,12 @@ node_container = DockerContainer('node:14.17.0')
 
 test_step = (Command()
              .label("Ejecutar Pruebas")
-             .set_meta("slack_channel", "#pruebas")
+             .set_meta("slack_channel_for_help", "#pruebas")
              .run('echo "Ejecutar Pruebas"'))
 
 build_step = (Command()
               .label("Construir Imagen Docker")
-              .set_meta("slack_channel", "#pruebas2")
+              .set_meta("slack_channel_for_help", "#pruebas2")
               .run('bazel build //...')
               .container(node_container))
 
